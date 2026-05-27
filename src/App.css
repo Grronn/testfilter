@@ -1,0 +1,550 @@
+/* ============================================================
+   RESET + ROOT
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  /* Цвета из дизайна */
+  --filter-bar-bg:    #4a6878;   /* тёмный тил — фон панели фильтров */
+  --filter-bar-hover: #3d5868;
+  --content-bg:       #f0f2f4;   /* светлый фон страницы */
+  --card-bg:          #ffffff;
+  --border:           #dde3e8;
+  --text:             #1a2530;
+  --text-secondary:   #6b7e8a;
+  --accent:           #4a6878;
+
+  /* Chip / tag цвета (строка под фильтром) */
+  --chip-bg:          #d4e4ec;
+  --chip-text:        #2a4a58;
+  --chip-border:      #b0ccd8;
+
+  /* Карточка */
+  --site-chip-bg:     #e8f0f4;
+  --site-chip-text:   #2a4a58;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--content-bg);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* ============================================================
+   APP LAYOUT
+   ============================================================ */
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app__main {
+  flex: 1;
+  max-width: 1100px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 0 16px 32px;
+}
+
+/* ============================================================
+   ПАНЕЛЬ ФИЛЬТРОВ
+   ============================================================ */
+.filters-panel {
+  /* Прилипает к верху при скролле — как в дизайне */
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  margin: 0 -16px 16px;
+}
+
+/* --- Тёмная горизонтальная полоса --- */
+.filters-bar {
+  background: var(--filter-bar-bg);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  min-height: 50px;
+}
+
+.filters-bar__divider {
+  width: 1px;
+  height: 20px;
+  background: rgba(255,255,255,0.2);
+  flex-shrink: 0;
+}
+
+/* ============================================================
+   PERIOD SELECT (дропдаун «все / последняя / ...»)
+   ============================================================ */
+.period-select__trigger {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 5px 10px;
+  font-size: 13px;
+  cursor: pointer;
+  color: var(--text);
+  white-space: nowrap;
+  min-width: 100px;
+  justify-content: space-between;
+  outline: none;
+}
+
+.period-select__trigger:focus-visible {
+  box-shadow: 0 0 0 2px rgba(255,255,255,0.5);
+}
+
+.period-select__icon {
+  color: var(--text-secondary);
+  display: flex;
+}
+
+/* Выпадающий список */
+.period-select__content {
+  background: #fff;
+  border-radius: 4px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.18);
+  overflow: hidden;
+  min-width: 130px;
+  z-index: 200;
+}
+
+.period-select__item {
+  padding: 8px 14px;
+  font-size: 13px;
+  cursor: pointer;
+  outline: none;
+  color: var(--text);
+  transition: background 0.1s;
+}
+
+.period-select__item[data-highlighted] {
+  background: var(--chip-bg);
+  color: var(--chip-text);
+}
+
+.period-select__item[data-state="checked"] {
+  background: var(--chip-bg);
+  font-weight: 600;
+}
+
+.select__scroll-btn {
+  display: flex;
+  justify-content: center;
+  padding: 4px;
+  color: var(--text-secondary);
+  background: #fff;
+}
+
+/* ============================================================
+   ICON BUTTONS (календарь, настройки)
+   ============================================================ */
+.filter-icon-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  color: rgba(255,255,255,0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+
+.filter-icon-btn:hover {
+  background: rgba(255,255,255,0.12);
+  color: #fff;
+}
+
+.filter-icon-btn--settings {
+  margin-left: auto; /* прибиваем к правому краю */
+}
+
+/* ============================================================
+   ПОИСК С ПОДСКАЗКАМИ (комбобокс)
+   ============================================================ */
+.search-combobox {
+  position: relative;
+  flex: 1;
+  min-width: 160px;
+}
+
+.search-combobox__icon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-secondary);
+  pointer-events: none;
+  width: 14px;
+  height: 14px;
+}
+
+.search-combobox__input {
+  width: 100%;
+  padding: 6px 10px 6px 30px;
+  border: none;
+  border-radius: 4px;
+  font-size: 13px;
+  background: rgba(255,255,255,0.95);
+  color: var(--text);
+  outline: none;
+  transition: box-shadow 0.15s;
+}
+
+.search-combobox__input:focus {
+  box-shadow: 0 0 0 2px rgba(255,255,255,0.5);
+}
+
+.search-combobox__input::placeholder {
+  color: var(--text-secondary);
+}
+
+/* Выпадающий список подсказок */
+.search-suggestions {
+  background: #fff;
+  border-radius: 4px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.18);
+  overflow: hidden;
+  z-index: 200;
+  /* Ширина = ширина якорного элемента (Anchor = input wrapper) */
+  width: var(--radix-popover-trigger-width);
+  min-width: 200px;
+}
+
+.search-suggestions__list {
+  list-style: none;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.search-suggestions__item {
+  padding: 8px 14px;
+  font-size: 13px;
+  cursor: pointer;
+  color: var(--text);
+  transition: background 0.1s;
+}
+
+.search-suggestions__item:hover {
+  background: var(--chip-bg);
+}
+
+/* Подсвечиваем совпадающую часть */
+.search-highlight {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+/*
+  Строка-сводка — жирный текст (первая группа результатов).
+  Соответствует "Тепловский, Кудринский, Мамонтовский" на скриншоте.
+*/
+.search-suggestions__item--svodka {
+  font-weight: 600;
+  color: var(--text);
+}
+
+/*
+  Вторичная строка — серый цвет (уже добавленные в чипы).
+  Соответствует "Тепловский 2" (серый) на скриншоте.
+  cursor: default — нельзя повторно добавить.
+*/
+.search-suggestions__item--secondary {
+  color: var(--text-secondary);
+  cursor: default;
+}
+
+.search-suggestions__item--secondary:hover {
+  background: transparent;
+}
+
+/* ============================================================
+   ENTITY TYPE TOGGLE (участок | общество)
+   ============================================================ */
+.entity-toggle {
+  display: flex;
+  align-items: center;
+  background: rgba(0,0,0,0.2);
+  border-radius: 4px;
+  padding: 2px;
+  gap: 1px;
+  flex-shrink: 0;
+}
+
+.entity-toggle__item {
+  padding: 4px 10px;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 12px;
+  color: rgba(255,255,255,0.7);
+  background: transparent;
+  transition: all 0.15s;
+  white-space: nowrap;
+  outline: none;
+}
+
+/* Активный элемент — белый фон (как "общество" на скриншоте) */
+.entity-toggle__item[data-state="on"] {
+  background: #fff;
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.entity-toggle__item:hover:not([data-state="on"]) {
+  color: rgba(255,255,255,0.95);
+  background: rgba(255,255,255,0.1);
+}
+
+/* ============================================================
+   КНОПКА "ОЧИСТИТЬ"
+   ============================================================ */
+.filters-clear-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  color: rgba(255,255,255,0.8);
+  padding: 4px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+  transition: color 0.15s;
+  flex-shrink: 0;
+}
+
+.filters-clear-btn:hover {
+  color: #fff;
+  text-decoration: underline;
+}
+
+/* ============================================================
+   DATEPICKER POPOVER
+   ============================================================ */
+.datepicker-popover {
+  background: #fff;
+  border-radius: 6px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.18);
+  padding: 14px;
+  z-index: 200;
+  min-width: 220px;
+}
+
+.datepicker-popover__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.datepicker-popover__title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.popover-close-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 3px;
+  border-radius: 3px;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+}
+
+.popover-close-btn:hover { background: var(--chip-bg); }
+
+.datepicker-input {
+  width: 100%;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: 13px;
+  color: var(--text);
+  outline: none;
+  margin-bottom: 10px;
+}
+
+.datepicker-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(74,104,120,0.15);
+}
+
+.datepicker-apply-btn {
+  width: 100%;
+  padding: 7px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.datepicker-apply-btn:hover:not(:disabled) { opacity: 0.9; }
+.datepicker-apply-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.popover-arrow { fill: #fff; }
+
+/* ============================================================
+   ACTIVE CHIPS — строка выбранных фильтров
+   ============================================================ */
+.active-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 8px 16px;
+  background: #3d5868; /* чуть темнее фильтр-бара */
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--chip-bg);
+  color: var(--chip-text);
+  border: 1px solid var(--chip-border);
+  border-radius: 20px;
+  padding: 2px 10px 2px 10px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.chip__remove {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  color: var(--text-secondary);
+  border-radius: 50%;
+  transition: color 0.1s;
+  margin-left: 2px;
+}
+
+.chip__remove:hover { color: #c0392b; }
+
+/* ============================================================
+   SVODKI LIST
+   ============================================================ */
+.svodki-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ============================================================
+   SVODKA CARD
+   ============================================================ */
+.svodka-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 14px 16px;
+}
+
+.svodka-card__meta-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.svodka-card__date-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.svodka-card__date-label strong {
+  color: var(--text);
+}
+
+.svodka-card__participants {
+  display: flex;
+  gap: 20px;
+}
+
+.participant {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.participant__role {
+  font-size: 10px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.participant__name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.svodka-card__title {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: var(--text);
+}
+
+.svodka-card__sites {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.site-chip {
+  background: var(--site-chip-bg);
+  color: var(--site-chip-text);
+  border: 1px solid var(--chip-border);
+  border-radius: 20px;
+  padding: 2px 12px;
+  font-size: 12px;
+}
+
+.svodka-card__areas {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.area-item {
+  font-size: 12px;
+  color: var(--text-secondary);
+  background: #f4f7f9;
+  border-radius: 4px;
+  padding: 5px 10px;
+}
+
+/* ============================================================
+   EMPTY STATE
+   ============================================================ */
+.empty-state {
+  text-align: center;
+  padding: 48px 16px;
+  color: var(--text-secondary);
+  background: var(--card-bg);
+  border-radius: 6px;
+  border: 1px dashed var(--border);
+  font-size: 14px;
+}
