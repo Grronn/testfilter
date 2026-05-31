@@ -1,6 +1,5 @@
 import { Provider } from "react-redux";
 import { store } from "./store";
-import { FiltersPanel } from "./components/Filters/FiltersPanel";
 import { SvodkiList } from "./components/SvodkiList/SvodkiList";
 import "./App.css";
 
@@ -9,7 +8,7 @@ function App() {
     <Provider store={store}>
       <div className="app">
         <main className="app__main">
-          <FiltersPanel />
+          {/* SvodkiList сам рендерит FiltersPanel внутри — с нужными пропсами */}
           <SvodkiList />
         </main>
       </div>

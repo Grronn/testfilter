@@ -1,0 +1,42 @@
+// Попап с календарём — светло-голубой фон как на скриншоте
+.popover {
+  background: #dce9ee;
+  border-radius: 12px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.18);
+  padding: 12px 14px 14px;
+  z-index: 200;
+  user-select: none;
+  min-width: 280px;
+}
+
+// Иконка в шапке попапа (слева) — как на скриншоте
+.popoverHeader {
+  display: flex;
+  align-items: center;
+  margin-bottom: 2px;
+  color: #4a6878;
+}
+
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+// Оранжевая кнопка-пилюля
+.applyBtn {
+  padding: 8px 26px;
+  background: #f08030;
+  color: #fff;
+  border: none;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.15s;
+
+  &:hover:not(:disabled) { opacity: 0.88; }
+  &:disabled { opacity: 0.35; cursor: not-allowed; }
+}
+
+.arrow { fill: #dce9ee; }

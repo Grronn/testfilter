@@ -269,6 +269,148 @@ body {
 }
 
 /* ============================================================
+   CALENDAR POPOVER
+   Кастомный календарь с выбором диапазона дат.
+   Цвета: тёмно-синий для выбранных дней,
+          светло-синий фон для диапазона между ними,
+          оранжевая кнопка "применить" — как в Figma.
+   ============================================================ */
+
+.calendar-popover {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+  padding: 14px;
+  z-index: 200;
+  width: 240px;
+  user-select: none; /* нельзя выделять цифры при клике */
+}
+
+/* Шапка: [‹] [май › 2026] [›] */
+.cal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.cal-nav-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  color: var(--text-secondary);
+  padding: 2px 6px;
+  border-radius: 4px;
+  line-height: 1;
+  transition: background 0.1s;
+}
+.cal-nav-btn:hover { background: var(--chip-bg); color: var(--text); }
+
+.cal-month-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.cal-month-name { color: var(--text); }
+.cal-month-sep  { color: var(--text-secondary); font-size: 12px; }
+.cal-year       { color: var(--text); }
+
+/* Сетка: 7 колонок, ячейки — квадратные кнопки */
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 1px;
+}
+
+/* Базовый стиль дня */
+.cal-day {
+  aspect-ratio: 1;         /* квадрат */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-radius: 50%;      /* кружок при выделении */
+  color: var(--text);
+  transition: background 0.1s;
+  position: relative;
+  z-index: 1;
+}
+
+.cal-day:hover {
+  background: var(--chip-bg);
+}
+
+/* День из другого месяца — серый */
+.cal-day--other {
+  color: var(--text-secondary);
+  opacity: 0.5;
+}
+
+/*
+  Выбранный день (начало или конец диапазона).
+  Тёмно-синий кружок с белым текстом — как на скриншоте.
+*/
+.cal-day--selected {
+  background: var(--filter-bar-bg) !important;
+  color: #fff !important;
+  font-weight: 600;
+  border-radius: 50%;
+}
+
+/*
+  Дни внутри диапазона — светло-синий прямоугольный фон.
+  border-radius: 0 убирает кружок, делает полосу.
+  Это стандартный паттерн для range-picker.
+*/
+.cal-day--in-range {
+  background: var(--chip-bg);
+  border-radius: 0;
+  color: var(--chip-text);
+}
+
+/* Конец при наведении (ещё не применён) */
+.cal-day--hover-end {
+  background: var(--chip-bg);
+  border-radius: 50%;
+  color: var(--chip-text);
+}
+
+/* Футер с кнопкой */
+.cal-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 12px;
+}
+
+/*
+  "применить" — оранжевая кнопка как в Figma.
+  Hex #f08030 — тёплый оранжевый.
+*/
+.cal-apply-btn {
+  padding: 7px 20px;
+  background: #f08030;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  font-weight: 500;
+}
+.cal-apply-btn:hover:not(:disabled) { opacity: 0.88; }
+.cal-apply-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* ============================================================
    ENTITY TYPE TOGGLE (участок | общество)
    ============================================================ */
 .entity-toggle {
@@ -326,75 +468,6 @@ body {
   color: #fff;
   text-decoration: underline;
 }
-
-/* ============================================================
-   DATEPICKER POPOVER
-   ============================================================ */
-.datepicker-popover {
-  background: #fff;
-  border-radius: 6px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.18);
-  padding: 14px;
-  z-index: 200;
-  min-width: 220px;
-}
-
-.datepicker-popover__header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 10px;
-}
-
-.datepicker-popover__title {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text);
-}
-
-.popover-close-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 3px;
-  border-radius: 3px;
-  color: var(--text-secondary);
-  display: flex;
-  align-items: center;
-}
-
-.popover-close-btn:hover { background: var(--chip-bg); }
-
-.datepicker-input {
-  width: 100%;
-  padding: 6px 10px;
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  font-size: 13px;
-  color: var(--text);
-  outline: none;
-  margin-bottom: 10px;
-}
-
-.datepicker-input:focus {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 2px rgba(74,104,120,0.15);
-}
-
-.datepicker-apply-btn {
-  width: 100%;
-  padding: 7px;
-  background: var(--accent);
-  color: #fff;
-  border: none;
-  border-radius: 4px;
-  font-size: 13px;
-  cursor: pointer;
-  transition: opacity 0.15s;
-}
-
-.datepicker-apply-btn:hover:not(:disabled) { opacity: 0.9; }
-.datepicker-apply-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
 .popover-arrow { fill: #fff; }
 

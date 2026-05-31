@@ -1,0 +1,161 @@
+$selected-bg:   #4a6878;
+$selected-text: #ffffff;
+$hover-bg:      #f0f5f7;
+$check-color:   #4a6878;
+
+// ── Обёртка: input + иконка + toggle в одной строке ──────────
+
+.searchWrapper {
+  display:     flex;
+  align-items: center;
+  gap:         6px;
+  flex:        1;
+  min-width:   240px;
+  background:  rgba(255, 255, 255, 0.95);
+  border-radius: 4px;
+  padding:     0 8px 0 10px;
+}
+
+.searchInput {
+  flex:       1;
+  border:     none;
+  outline:    none;
+  background: transparent;
+  font-size:  13px;
+  color:      #1a2530;
+  padding:    6px 0;
+  min-width:  60px;
+
+  &::placeholder { color: #8a9eaa; }
+}
+
+// Правая часть поля: иконка лупы + переключатель типа
+.inputSuffix {
+  display:     flex;
+  align-items: center;
+  gap:         6px;
+  flex-shrink: 0;
+}
+
+.searchIcon {
+  width:  14px;
+  height: 14px;
+  color:  #8a9eaa;
+  flex-shrink: 0;
+}
+
+// ── Переключатель участок / общество ─────────────────────────
+
+.typeToggle {
+  display:       flex;
+  align-items:   center;
+  background:    rgba(74, 104, 120, 0.12);
+  border-radius: 20px;
+  padding:       2px;
+  gap:           1px;
+}
+
+.typeBtn {
+  border:        none;
+  background:    transparent;
+  padding:       2px 8px;
+  font-size:     11px;
+  font-weight:   500;
+  border-radius: 18px;
+  cursor:        pointer;
+  color:         rgba(74, 104, 120, 0.65);
+  white-space:   nowrap;
+  transition:    background 0.12s, color 0.12s;
+  font-family:   inherit;
+
+  &:hover:not(.typeBtnActive) {
+    background: rgba(74, 104, 120, 0.12);
+    color: $selected-bg;
+  }
+}
+
+.typeBtnActive {
+  background: $selected-bg;
+  color:      $selected-text;
+}
+
+// ── Выпадающий список ────────────────────────────────────────
+
+.dropdown {
+  background:   #fff;
+  border-radius: 6px;
+  box-shadow:   0 4px 20px rgba(0, 0, 0, 0.16);
+  z-index:      200;
+  width:        var(--radix-popover-trigger-width);
+  min-width:    220px;
+  max-height:   280px;
+  overflow-y:   auto;
+}
+
+.dropdownList {
+  list-style: none;
+  padding:    4px 0;
+}
+
+// ── Строка в списке ──────────────────────────────────────────
+
+.item {
+  display:     flex;
+  align-items: center;
+  gap:         8px;
+  padding:     8px 12px;
+  font-size:   13px;
+  cursor:      pointer;
+  color:       #1a2530;
+  transition:  background 0.1s;
+  user-select: none;
+
+  &:hover { background: $hover-bg; }
+}
+
+.itemSvodka {
+  font-weight: 600;
+}
+
+.itemSelected {
+  background: rgba($selected-bg, 0.08);
+  &:hover    { background: rgba($selected-bg, 0.14); }
+}
+
+// ── Чекбокс ──────────────────────────────────────────────────
+
+.checkIcon {
+  width:      14px;
+  height:     14px;
+  color:      $check-color;
+  flex-shrink: 0;
+}
+
+.checkPlaceholder {
+  width:       14px;
+  flex-shrink: 0;
+}
+
+// ── Подсветка совпадения ─────────────────────────────────────
+
+.highlight {
+  color:       $selected-bg;
+  font-weight: 700;
+}
+
+// ── Разделитель ───────────────────────────────────────────────
+
+.divider {
+  height:     1px;
+  background: #e8eff2;
+  margin:     4px 0;
+}
+
+// ── Пустой список ────────────────────────────────────────────
+
+.emptyText {
+  padding:    12px;
+  font-size:  12px;
+  color:      #8a9eaa;
+  text-align: center;
+}

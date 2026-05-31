@@ -1,0 +1,215 @@
+// ============================================================
+// Calendar.module.scss — react-day-picker v10
+//
+// КАК РАБОТАЕТ RANGE PICKER (по скриншоту):
+//   — Все выбранные дни одного цвета (нет тёмных кружков на start/end)
+//   — Каждая строка образует отдельную пилюлю с закруглёнными краями
+//   — При переносе строки: первый день строки = левый круглый край,
+//     последний день строки = правый круглый край
+//
+// РЕАЛИЗАЦИЯ:
+//   Кнопка .day_button растягивается на 100% ширины ячейки
+//   для range-состояний. Border-radius применяется к кнопке,
+//   не к <td> — это обходит ограничение border-collapse:collapse.
+//
+//   Закругления по краям строк:
+//   .week > .day.range_middle:first-child .day_button → левый край
+//   .week > .day.range_middle:last-child  .day_button → правый край
+// ============================================================
+
+// ── Цвета ────────────────────────────────────────────────────
+$range-color: #8aacbc;   // цвет всех выбранных дней — как на скриншоте
+$range-text:  #1a2530;   // цвет цифр внутри диапазона
+$text:        #2a3a45;
+$outside:     #a0b8c4;
+$today-line:  #4a6878;
+
+$day-size:    40px;      // размер ячейки td
+$btn-size:    34px;      // высота кнопки
+$half:        #{calc($day-size / 2)}; // радиус закругления пилюли (половина ячейки)
+
+// ── Корень ───────────────────────────────────────────────────
+.root {
+  position: relative;
+  box-sizing: border-box;
+  font-size: 13px;
+  color: $text;
+}
+
+.months { display: flex; }
+.month  { display: flex; flex-direction: column; }
+
+// ── Скрываем стандартную шапку v10 ──────────────────────────
+.month_caption, .caption_label,
+.nav, .button_previous, .button_next { display: none; }
+
+// ── Кастомная шапка [◄ май ►] [◄ 2026 ►] ────────────────────
+.customCaption {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 0 10px;
+}
+
+.captionGroup {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.captionLabel {
+  font-size: 14px;
+  font-weight: 500;
+  min-width: 52px;
+  text-align: center;
+  color: $text;
+}
+
+.captionBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  color: #6b8a9a;
+  padding: 1px 6px;
+  border-radius: 4px;
+  line-height: 1;
+  &:hover { background: rgba(0,0,0,0.07); color: $text; }
+}
+
+// ── Таблица ──────────────────────────────────────────────────
+.month_grid {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.weeks, .week {}
+
+// Заголовки дней — скрываем (на скриншоте нет)
+.weekdays { display: none; }
+.weekday  { display: none; }
+
+// ── Ячейка <td> ──────────────────────────────────────────────
+.day {
+  width:  $day-size;
+  height: $day-size;
+  padding: 0;
+  text-align: center;
+  vertical-align: middle;
+}
+
+// ── Кнопка <button> — нормальный круглый вид ─────────────────
+.day_button {
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  width:           $btn-size;
+  height:          $btn-size;
+  margin:          auto;          // центрируем в td
+  border:          none;
+  background:      transparent;
+  cursor:          pointer;
+  border-radius:   50%;
+  font-size:       13px;
+  color:           $text;
+  font-family:     inherit;
+  position:        relative;
+  z-index:         1;
+  transition:      background 0.1s;
+
+  &:hover { background: rgba(0,0,0,0.09); }
+}
+
+// ── Модификаторы ─────────────────────────────────────────────
+.today .day_button {
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-color: $today-line;
+  text-underline-offset: 2px;
+}
+
+.outside .day_button  { color: $outside; }
+.disabled             { opacity: 0.3; pointer-events: none; }
+.hidden               { visibility: hidden; }
+.focused .day_button  { outline: 2px solid $range-color; outline-offset: 1px; }
+
+// single-mode (не range)
+.selected .day_button {
+  background:    $range-color;
+  color:         white;
+  border-radius: 50%;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// RANGE PICKER
+//
+// Принцип: кнопка растягивается на 100% ширины ячейки для
+// всех range-состояний. Закругления — через border-radius кнопки.
+// Граница строки обрабатывается :first-child/:last-child.
+// ═══════════════════════════════════════════════════════════════
+
+// ── Общие свойства для ВСЕХ range кнопок ─────────────────────
+.range_start .day_button,
+.range_middle .day_button,
+.range_end .day_button {
+  width:         100%;          // растягиваем на всю ширину ячейки
+  height:        $day-size;     // на всю высоту ячейки — бесшовная полоса
+  margin:        0;             // убираем auto-центрирование
+  border-radius: 0;             // базовый — без закруглений
+  background:    $range-color;  // единый цвет для всех
+  color:         $range-text;
+}
+
+// ── Начало диапазона: левый закруглённый край ────────────────
+.range_start .day_button {
+  border-radius: $half 0 0 $half;
+}
+
+// ── Конец диапазона: правый закруглённый край ────────────────
+.range_end .day_button {
+  border-radius: 0 $half $half 0;
+}
+
+// ── Один день: start = end — полный круг ─────────────────────
+.range_start.range_end .day_button {
+  border-radius: 50%;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ЗАКРУГЛЕНИЯ НА КРАЯХ СТРОК — обрабатывают перенос диапазона
+//
+// Когда диапазон переходит на следующую строку:
+//   — первый день новой строки → левый закруглённый край
+//   — последний день строки → правый закруглённый край
+//
+// .week > .day.range_middle:first-child = <td> с range_middle
+//   который является первым в строке <tr>
+// ═══════════════════════════════════════════════════════════════
+
+// Первая ячейка строки — левый край полосы (начало новой строки)
+.week > .day.range_middle:first-child .day_button,
+.week > .day.range_end:first-child .day_button {
+  border-radius: $half 0 0 $half;
+}
+
+// Последняя ячейка строки — правый край полосы (конец строки)
+.week > .day.range_middle:last-child .day_button,
+.week > .day.range_start:last-child .day_button {
+  border-radius: 0 $half $half 0;
+}
+
+// range_start на ПОСЛЕДНЕЙ ячейке строки — единичная пилюля
+.week > .day.range_start:last-child .day_button {
+  border-radius: 50%;
+}
+
+// range_end на ПЕРВОЙ ячейке строки — единичная пилюля
+.week > .day.range_end:first-child .day_button {
+  border-radius: 50%;
+}
+
+// Если range_start и range_end на одной ячейке — всегда круг
+.range_start.range_end .day_button {
+  border-radius: 50% !important;
+}

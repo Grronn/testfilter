@@ -1,106 +1,130 @@
-// ============================================================
-// FILTERSPANEL — главная панель фильтров
-// ============================================================
-// Тёмная горизонтальная полоса сверху страницы.
-// Содержит все элементы управления фильтрами.
-//
-// СТРУКТУРА:
-//   ┌─────────────────────────────────────────────────────────┐
-//   │ [период ▼] [📅] [🔍 Найти          ] [участок|общество] [очистить] [⚙]│
-//   └─────────────────────────────────────────────────────────┘
-//   [07.04.2026 ×] [ЮганскНГ ×] [Удмуртнефть ×]  ← ActiveChips
-//
-// Роль React Hook Form здесь:
-//   Форма управляет "временным" состоянием UI:
-//     - period    → в Redux немедленно через watch()
-//     - entityType → меняет что ищет SearchCombobox
-//     - search    → текст в поле поиска (не фильтрует сам по себе)
-//   Чипы хранятся в Redux напрямую (не в форме).
-//
-// Что изучить:
-//   "react hook form useForm", "useWatch"
-// ============================================================
-
-import { useEffect } from "react";
-import { useForm, useWatch } from "react-hook-form";
-import { MixerHorizontalIcon } from "@radix-ui/react-icons";
-import { SvodkiFilters, DEFAULT_FILTERS } from "../../types";
-import { useAppDispatch, useAppSelector } from "../../store";
-import { setFilters, clearChips, selectFilters } from "../../store/slices/svodkiSlice";
+import { useWatch } from "react-hook-form";
+import type { UseFormSetValue, UseFormReset, Control } from "react-hook-form";
+import { format } from "date-fns";
+import { ru } from "date-fns/locale";
+import { Cross2Icon, MixerHorizontalIcon } from "@radix-ui/react-icons";
+import type { SvodkiFiltersForm } from "../../types";
+import { DEFAULT_FORM_VALUES } from "../../types";
 import { PeriodSelect } from "./PeriodSelect";
-import { DatePickerButton } from "./DatePickerButton";
-import { SearchCombobox } from "./SearchCombobox";
-import { EntityTypeToggle } from "./EntityTypeToggle";
-import { ActiveChips } from "./ActiveChips";
+import { DateRangePicker } from "./DateRangePicker/DateRangePicker";
+import { EntitySelector } from "./EntitySelector/EntitySelector";
 
-export function FiltersPanel() {
-  const dispatch = useAppDispatch();
-  const currentFilters = useAppSelector(selectFilters);
+interface FiltersPanelProps {
+  control:         Control<SvodkiFiltersForm>;
+  setValue:        UseFormSetValue<SvodkiFiltersForm>;
+  reset:           UseFormReset<SvodkiFiltersForm>;
+  societies:       string[];
+  sites:           string[];
+  siteSocietyMap:  Record<string, string[]>;
+}
 
-  // ============================================================
-  // useForm — инициализируем форму значениями из Redux.
-  // Так форма "синхронизирована" с сохранённым состоянием.
-  // ============================================================
-  const { control, reset, getValues } = useForm<SvodkiFilters>({
-    defaultValues: currentFilters,
-  });
-
-  // ============================================================
-  // useWatch — следим за конкретными полями.
-  // Более эффективно чем watch() — подписывается только на нужные поля.
-  // Вызывает ре-рендер только когда period или entityType меняются.
-  //
-  // Разница между watch() и useWatch():
-  //   watch()     — функция, вызывается в render, всегда ре-рендерит
-  //   useWatch()  — хук, более гранулярная подписка, лучше для production
-  // ============================================================
-  const period = useWatch({ control, name: "period" });
-  const entityType = useWatch({ control, name: "entityType" });
-
-  // Синхронизируем period и entityType в Redux при изменении
-  useEffect(() => {
-    dispatch(setFilters({ ...getValues(), period, entityType }));
-  }, [period, entityType]); // eslint-disable-line
-
-  // Кнопка "Очистить" — сбрасывает и форму и чипы в Redux
-  const handleClear = () => {
-    reset(DEFAULT_FILTERS);
-    dispatch(clearChips());
-    dispatch(setFilters(DEFAULT_FILTERS));
-  };
-
+export function FiltersPanel({
+  control,
+  setValue,
+  reset,
+  societies,
+  sites,
+  siteSocietyMap,
+}: FiltersPanelProps) {
   return (
     <div className="filters-panel">
-      {/* ===== ТЁМНАЯ ПОЛОСА С КОНТРОЛАМИ ===== */}
       <div className="filters-bar">
-        {/* --- Период (дропдаун) --- */}
         <PeriodSelect control={control} />
-
-        {/* --- Датапикер (иконка-кнопка) --- */}
-        <DatePickerButton />
-
-        {/* --- Разделитель --- */}
+        <DateRangePicker control={control} />
         <div className="filters-bar__divider" />
-
-        {/* --- Поиск с подсказками --- */}
-        <SearchCombobox control={control} />
-
-        {/* --- Переключатель участок/общество --- */}
-        <EntityTypeToggle control={control} />
-
-        {/* --- Кнопка "Очистить" --- */}
-        <button type="button" className="filters-clear-btn" onClick={handleClear}>
+        <EntitySelector
+          control={control}
+          setValue={setValue}
+          societies={societies}
+          sites={sites}
+          siteSocietyMap={siteSocietyMap}
+        />
+        <button
+          type="button"
+          className="filters-clear-btn"
+          onClick={() => reset(DEFAULT_FORM_VALUES)}
+        >
           очистить
         </button>
-
-        {/* --- Кнопка доп. настроек (placeholder) --- */}
         <button type="button" className="filter-icon-btn filter-icon-btn--settings">
           <MixerHorizontalIcon width={16} height={16} />
         </button>
       </div>
 
-      {/* ===== СТРОКА ЧИПОВ (если есть выбранные фильтры) ===== */}
-      <ActiveChips />
+      <ActiveChips control={control} setValue={setValue} />
     </div>
+  );
+}
+
+// ─── Active chips ─────────────────────────────────────────────────────────────
+
+interface ActiveChipsProps {
+  control:  Control<SvodkiFiltersForm>;
+  setValue: UseFormSetValue<SvodkiFiltersForm>;
+}
+
+function ActiveChips({ control, setValue }: ActiveChipsProps) {
+  const dateRange         = useWatch({ control, name: "dateRange" });
+  const selectedSocieties = useWatch({ control, name: "selectedSocieties" });
+  const selectedSites     = useWatch({ control, name: "selectedSites" });
+
+  const hasAny =
+    dateRange?.from ||
+    selectedSocieties.length > 0 ||
+    selectedSites.length > 0;
+
+  if (!hasAny) return null;
+
+  const formatDate = (d: Date) => format(d, "dd.MM.yyyy", { locale: ru });
+
+  const dateLabel = dateRange?.from
+    ? dateRange.to && dateRange.to !== dateRange.from
+      ? `период ${formatDate(dateRange.from)} — ${formatDate(dateRange.to)}`
+      : `период ${formatDate(dateRange.from)}`
+    : null;
+
+  return (
+    <div className="active-chips">
+      {dateLabel && (
+        <Chip
+          label={dateLabel}
+          onRemove={() => setValue("dateRange", { from: undefined, to: undefined })}
+        />
+      )}
+      {selectedSocieties.map((society) => (
+        <Chip
+          key={society}
+          label={society}
+          onRemove={() =>
+            setValue("selectedSocieties", selectedSocieties.filter((s) => s !== society))
+          }
+        />
+      ))}
+      {selectedSites.map((site) => (
+        <Chip
+          key={site}
+          label={site}
+          onRemove={() =>
+            setValue("selectedSites", selectedSites.filter((s) => s !== site))
+          }
+        />
+      ))}
+    </div>
+  );
+}
+
+function Chip({ label, onRemove }: { label: string; onRemove: () => void }) {
+  return (
+    <span className="chip">
+      <span className="chip__label">{label}</span>
+      <button
+        type="button"
+        className="chip__remove"
+        onClick={onRemove}
+        aria-label={`Убрать ${label}`}
+      >
+        <Cross2Icon width={10} height={10} />
+      </button>
+    </span>
   );
 }

@@ -17,11 +17,13 @@
 
 import * as Select from "@radix-ui/react-select";
 import { ChevronDownIcon, ChevronUpIcon } from "@radix-ui/react-icons";
-import { useController, Control } from "react-hook-form";
-import { SvodkiFilters, PERIOD_OPTIONS, Period } from "../../types";
+import { useController } from "react-hook-form";
+import type { Control } from "react-hook-form";
+import type { SvodkiFiltersForm, Period } from "../../types";
+import { PERIOD_OPTIONS } from "../../types";
 
 interface PeriodSelectProps {
-  control: Control<SvodkiFilters>;
+  control: Control<SvodkiFiltersForm>;
 }
 
 export function PeriodSelect({ control }: PeriodSelectProps) {
