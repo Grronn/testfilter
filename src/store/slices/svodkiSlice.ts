@@ -1,43 +1,40 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import type { Svodka, SvodkiFiltersForm } from "../../types";
-import {
-  MOCK_SVODKI,
-  MOCK_SOCIETIES,
-  MOCK_SITES,
-  SITE_SOCIETY_MAP,
-} from "../../types";
+import type { Svodka, SvodkiFiltersForm, GroupCompany, License } from "../../types";
+import { MOCK_SVODKI, MOCK_GROUP_COMPANIES, MOCK_LICENSES } from "../../types";
 
 // ─── State ───────────────────────────────────────────────────────────────────
 
 interface SvodkiState {
   items:          Svodka[];
-  societies:      string[];
-  sites:          string[];
-  siteSocietyMap: Record<string, string[]>;
+  groupCompanies: GroupCompany[];
+  licensies:      License[];
   isLoading:      boolean;
 }
 
 const initialState: SvodkiState = {
-  // В реальном приложении каталоги приходят с сервера.
-  // Здесь инициализируем моком — заменить на thunk при подключении API.
-  societies:      MOCK_SOCIETIES,
-  sites:          MOCK_SITES,
-  siteSocietyMap: SITE_SOCIETY_MAP,
+  // Каталоги — в реальном приложении загружаются с API при старте.
+  groupCompanies: MOCK_GROUP_COMPANIES,
+  licensies:      MOCK_LICENSES,
   items:          MOCK_SVODKI,
   isLoading:      false,
 };
 
 // ─── Async thunk ─────────────────────────────────────────────────────────────
 
-// Симулирует запрос к бекенду с параметрами фильтра.
-// В реальном приложении здесь будет fetch/axios к API.
+// Симулирует запрос к API с параметрами фильтра.
+// getState нужен чтобы достать каталоги для перевода ID → название.
 export const fetchSvodki = createAsyncThunk(
   "svodki/fetch",
-  async (filters: SvodkiFiltersForm) => {
-    // TODO: заменить на реальный API-вызов, например:
-    // const response = await api.get("/svodki", { params: toApiParams(filters) });
-    // return response.data as Svodka[];
-    return filterSvodki(MOCK_SVODKI, filters);
+  async (filters: SvodkiFiltersForm, thunkAPI) => {
+    const state = thunkAPI.getState() as { svodki: SvodkiState };
+    // TODO: заменить на реальный API-вызов:
+    // return await api.get<Svodka[]>("/svodki", { params: toApiParams(filters) });
+    return filterSvodki(
+      MOCK_SVODKI,
+      filters,
+      state.svodki.groupCompanies,
+      state.svodki.licensies,
+    );
   }
 );
 
@@ -49,16 +46,12 @@ const svodkiSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
-      .addCase(fetchSvodki.pending, (state) => {
-        state.isLoading = true;
-      })
+      .addCase(fetchSvodki.pending,   (state) => { state.isLoading = true; })
       .addCase(fetchSvodki.fulfilled, (state, action) => {
         state.isLoading = false;
         state.items = action.payload;
       })
-      .addCase(fetchSvodki.rejected, (state) => {
-        state.isLoading = false;
-      });
+      .addCase(fetchSvodki.rejected,  (state) => { state.isLoading = false; });
   },
 });
 
@@ -68,15 +61,34 @@ export default svodkiSlice.reducer;
 
 type RootState = { svodki: SvodkiState };
 
-export const selectSvodki         = (s: RootState) => s.svodki.items;
-export const selectSvodkiLoading  = (s: RootState) => s.svodki.isLoading;
-export const selectSocieties      = (s: RootState) => s.svodki.societies;
-export const selectSites          = (s: RootState) => s.svodki.sites;
-export const selectSiteSocietyMap = (s: RootState) => s.svodki.siteSocietyMap;
+export const selectSvodki            = (s: RootState) => s.svodki.items;
+export const selectSvodkiLoading     = (s: RootState) => s.svodki.isLoading;
+export const selectGroupCompanies    = (s: RootState) => s.svodki.groupCompanies;
+export const selectLicensies         = (s: RootState) => s.svodki.licensies;
 
-// ─── Filtering (используется и в thunk, и в тестах) ──────────────────────────
+// ─── Filtering ───────────────────────────────────────────────────────────────
 
-function filterSvodki(svodki: Svodka[], filters: SvodkiFiltersForm): Svodka[] {
+// Форма хранит ID выбранных обществ и участков.
+// Сводки ссылаются на них по названию (customer, contractor, sites).
+// Поэтому переводим ID → название перед сравнением.
+function filterSvodki(
+  svodki:         Svodka[],
+  filters:        SvodkiFiltersForm,
+  groupCompanies: GroupCompany[],
+  licensies:      License[],
+): Svodka[] {
+  const selectedCompanyNames = new Set(
+    groupCompanies
+      .filter((c) => filters.groupCompanies.includes(c.id))
+      .map((c) => c.title)
+  );
+
+  const selectedLicenseNames = new Set(
+    licensies
+      .filter((l) => filters.licensies.includes(l.id))
+      .map((l) => l.title)
+  );
+
   return svodki.filter((s) => {
     if (filters.period !== "все") {
       const date = parseDDMMYYYY(s.dateFrom);
@@ -90,16 +102,14 @@ function filterSvodki(svodki: Svodka[], filters: SvodkiFiltersForm): Svodka[] {
       if (date < startOfDay(from) || date > endOfDay(to)) return false;
     }
 
-    if (filters.selectedSocieties.length > 0) {
-      const match = filters.selectedSocieties.some(
-        (soc) => s.customer === soc || s.contractor === soc
-      );
-      if (!match) return false;
+    if (selectedCompanyNames.size > 0) {
+      if (!selectedCompanyNames.has(s.customer) && !selectedCompanyNames.has(s.contractor)) {
+        return false;
+      }
     }
 
-    if (filters.selectedSites.length > 0) {
-      const match = filters.selectedSites.some((site) => s.sites.includes(site));
-      if (!match) return false;
+    if (selectedLicenseNames.size > 0) {
+      if (!s.sites.some((site) => selectedLicenseNames.has(site))) return false;
     }
 
     return true;
@@ -120,10 +130,10 @@ function endOfDay(d: Date): Date {
 }
 
 function matchesPeriod(date: Date, today: Date, period: string): boolean {
-  const diffDays = (today.getTime() - date.getTime()) / (1000 * 60 * 60 * 24);
-  if (period === "сегодня")   return diffDays < 1;
-  if (period === "неделя")    return diffDays <= 7;
-  if (period === "месяц")     return diffDays <= 30;
-  if (period === "последняя") return diffDays < 1;
+  const diff = (today.getTime() - date.getTime()) / (1000 * 60 * 60 * 24);
+  if (period === "сегодня")   return diff < 1;
+  if (period === "неделя")    return diff <= 7;
+  if (period === "месяц")     return diff <= 30;
+  if (period === "последняя") return diff < 1;
   return true;
 }

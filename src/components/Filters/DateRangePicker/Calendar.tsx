@@ -35,7 +35,8 @@ import { ru } from "date-fns/locale";
 import styles from "./Calendar.module.scss";
 import { CustomCaption } from "./CustomCaption";
 
-type CalendarProps = Omit<DayPickerProps, "locale" | "components">;
+type DistributiveOmit<T, K extends keyof any> = T extends unknown ? Omit<T, K> : never;
+type CalendarProps = DistributiveOmit<DayPickerProps, "locale" | "components">;
 
 // react-day-picker without classNames uses its own selectors (rdp-root, rdp-day…)
 // that don't match CSS Modules scoped names. This maps each element to our class.

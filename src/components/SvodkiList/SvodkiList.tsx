@@ -7,9 +7,8 @@ import {
   fetchSvodki,
   selectSvodki,
   selectSvodkiLoading,
-  selectSocieties,
-  selectSites,
-  selectSiteSocietyMap,
+  selectGroupCompanies,
+  selectLicensies,
 } from "../../store/slices/svodkiSlice";
 import type { SvodkiFiltersForm } from "../../types";
 import { DEFAULT_FORM_VALUES } from "../../types";
@@ -17,24 +16,19 @@ import { DEFAULT_FORM_VALUES } from "../../types";
 export function SvodkiList() {
   const dispatch = useAppDispatch();
 
-  // Данные из Redux
   const svodki        = useAppSelector(selectSvodki);
   const isLoading     = useAppSelector(selectSvodkiLoading);
-  const societies     = useAppSelector(selectSocieties);
-  const sites         = useAppSelector(selectSites);
-  const siteSocietyMap = useAppSelector(selectSiteSocietyMap);
+  const groupCompanies = useAppSelector(selectGroupCompanies);
+  const licensies      = useAppSelector(selectLicensies);
 
-  // SvodkiList — владелец формы фильтров.
-  // Методы control, setValue, reset передаются в FiltersPanel.
-  const { control, watch, setValue, reset } = useForm<SvodkiFiltersForm>({
+  const { control, watch, reset } = useForm<SvodkiFiltersForm>({
     defaultValues: DEFAULT_FORM_VALUES,
   });
 
   const formValues = watch();
 
-  // Когда фильтры изменяются — запрашиваем новый список сводок.
+  // Запрашиваем сводки при каждом изменении фильтров.
   // В реальном приложении здесь будет API-запрос через thunk.
-  // Dependency: JSON.stringify обеспечивает стабильное сравнение объекта фильтров.
   useEffect(() => {
     dispatch(fetchSvodki(formValues));
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -44,11 +38,9 @@ export function SvodkiList() {
     <div>
       <FiltersPanel
         control={control}
-        setValue={setValue}
         reset={reset}
-        societies={societies}
-        sites={sites}
-        siteSocietyMap={siteSocietyMap}
+        groupCompanies={groupCompanies}
+        licensies={licensies}
       />
 
       <div className="svodki-list">

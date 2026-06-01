@@ -1,7 +1,6 @@
 // ─── Domain types ─────────────────────────────────────────────────────────────
 
-export type Period     = "все" | "последняя" | "сегодня" | "неделя" | "месяц";
-export type EntityType = "участок" | "общество";
+export type Period = "все" | "последняя" | "сегодня" | "неделя" | "месяц";
 
 export interface Svodka {
   id:         string;
@@ -13,62 +12,72 @@ export interface Svodka {
   areas:      string[];
 }
 
+// Базовый интерфейс для MultiSelect — у объектов много полей, но нужны только id + title.
+// На реальном проекте GroupCompany и License расширяют этот тип дополнительными полями.
+export interface SelectableItem {
+  id:    number;
+  title: string;
+}
+
+export interface GroupCompany extends SelectableItem {}
+export interface License      extends SelectableItem {}
+
 // ─── Form ─────────────────────────────────────────────────────────────────────
 
-// Тип для useForm<SvodkiFiltersForm> в SvodkiList.
-// Все компоненты фильтров получают Control<SvodkiFiltersForm> или SetValue<SvodkiFiltersForm>.
+// useForm<SvodkiFiltersForm> в SvodkiList.
+// MultiSelect-поля хранят ID (number[]), не строки и не объекты.
 export interface SvodkiFiltersForm {
-  period:             Period;
-  entityType:         EntityType;
-  dateRange:          { from: Date | undefined; to: Date | undefined };
-  selectedSocieties:  string[];
-  selectedSites:      string[];
+  period:         Period;
+  dateRange:      { from: Date | undefined; to: Date | undefined };
+  groupCompanies: number[];   // ID выбранных обществ
+  licensies:      number[];   // ID выбранных участков
 }
 
 export const DEFAULT_FORM_VALUES: SvodkiFiltersForm = {
-  period:            "все",
-  entityType:        "общество",
-  dateRange:         { from: undefined, to: undefined },
-  selectedSocieties: [],
-  selectedSites:     [],
+  period:         "все",
+  dateRange:      { from: undefined, to: undefined },
+  groupCompanies: [],
+  licensies:      [],
 };
 
-export const PERIOD_OPTIONS: { value: Period; label: string }[] = [
-  { value: "все",       label: "все" },
+export const PERIOD_OPTIONS: Array<{ value: Period; label: string }> = [
+  { value: "все", label: "все" },
   { value: "последняя", label: "последняя" },
-  { value: "сегодня",   label: "сегодня" },
-  { value: "неделя",    label: "неделя" },
-  { value: "месяц",     label: "месяц" },
+  { value: "сегодня", label: "сегодня" },
+  { value: "неделя", label: "неделя" },
+  { value: "месяц", label: "месяц" },
 ];
 
-// ─── Catalogs ─────────────────────────────────────────────────────────────────
+// ─── Mock catalogs ────────────────────────────────────────────────────────────
 
-// Участок → список обществ которым он принадлежит.
-// В реальном приложении приходит с сервера.
-export const SITE_SOCIETY_MAP: Record<string, string[]> = {
-  "Кудринский":        ["ЮганскНГ", "СНГЕО СП-2"],
-  "Тепловский":        ["ЮганскНГ", "СНГЕО СП-2"],
-  "Тепловский 2":      ["ЮганскНГ"],
-  "Тепловский 3":      ["БашНефть"],
-  "Тепловский 4":      ["БашНефть", "СНГЕО СП-3"],
-  "Мамонтовский":      ["ЮганскНГ"],
-  "Ново-Арланский":    ["БашНефть", "СНГЕО СП-3"],
-  "Арланский":         ["БашНефть"],
-  "Озёрный":           ["Удмуртнефть", "СНГЕО СП-2"],
-  "Дмитриевский":      ["Роснефть", "СНГЕО СП-3"],
-  "Ромашкинский":      ["Татнефть", "СНГЕО СП-2"],
-  "Западно-Сибирский": ["Удмуртнефть"],
-};
-
-export const MOCK_SOCIETIES: string[] = [
-  "ЮганскНГ", "Удмуртнефть", "БашНефть",
-  "СНГЕО СП-2", "СНГЕО СП-3", "Роснефть",
-  "Газпром нефть", "Лукойл", "Татнефть",
+export const MOCK_GROUP_COMPANIES: GroupCompany[] = [
+  { id: 1, title: "ЮганскНГ" },
+  { id: 2, title: "Удмуртнефть" },
+  { id: 3, title: "БашНефть" },
+  { id: 4, title: "СНГЕО СП-2" },
+  { id: 5, title: "СНГЕО СП-3" },
+  { id: 6, title: "Роснефть" },
+  { id: 7, title: "Газпром нефть" },
+  { id: 8, title: "Лукойл" },
+  { id: 9, title: "Татнефть" },
 ];
 
-export const MOCK_SITES: string[] = Object.keys(SITE_SOCIETY_MAP);
+export const MOCK_LICENSES: License[] = [
+  { id: 1,  title: "Кудринский" },
+  { id: 2,  title: "Тепловский" },
+  { id: 3,  title: "Тепловский 2" },
+  { id: 4,  title: "Тепловский 3" },
+  { id: 5,  title: "Тепловский 4" },
+  { id: 6,  title: "Мамонтовский" },
+  { id: 7,  title: "Ново-Арланский" },
+  { id: 8,  title: "Арланский" },
+  { id: 9,  title: "Озёрный" },
+  { id: 10, title: "Дмитриевский" },
+  { id: 11, title: "Ромашкинский" },
+  { id: 12, title: "Западно-Сибирский" },
+];
 
-// ─── Mock data ────────────────────────────────────────────────────────────────
+// ─── Mock svodki ──────────────────────────────────────────────────────────────
 
 export const MOCK_SVODKI: Svodka[] = [
   {

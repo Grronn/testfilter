@@ -25,8 +25,7 @@ import { useState, useMemo, useCallback } from "react";
 import type { DateRange } from "react-day-picker";
 import * as Popover from "@radix-ui/react-popover";
 import { CalendarIcon } from "@radix-ui/react-icons";
-import { format, isBefore } from "date-fns";
-import { ru } from "date-fns/locale";
+import { isBefore } from "date-fns";
 import { useController } from "react-hook-form";
 import type { Control } from "react-hook-form";
 import { Calendar } from "./Calendar";
@@ -139,9 +138,6 @@ export function DateRangePicker({ control }: DateRangePickerProps) {
     field.onChange(pendingRange);
     setOpen(false);
   };
-
-  // Форматируем дату для отображения: Date → "07.04.2026"
-  const formatDate = (date: Date) => format(date, "dd.MM.yyyy", { locale: ru });
 
   return (
     // ──────────────────────────────────────────────────────────
