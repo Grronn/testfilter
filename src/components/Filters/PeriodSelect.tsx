@@ -31,11 +31,21 @@ export function PeriodSelect({ control }: PeriodSelectProps) {
   // field.value — текущее значение (например "все")
   // field.onChange — вызываем когда пользователь выбрал новый период
   const { field } = useController({ name: "period", control });
+  const { field: dateRangeField } = useController({ name: "dateRange", control });
+
+  const handleValueChange = (val: string) => {
+    const nextPeriod = val as Period;
+    field.onChange(nextPeriod);
+
+    if (nextPeriod !== "даты") {
+      dateRangeField.onChange({ from: undefined, to: undefined });
+    }
+  };
 
   return (
     <Select.Root
       value={field.value}
-      onValueChange={(val) => field.onChange(val as Period)}
+      onValueChange={handleValueChange}
     >
       {/*
         Select.Trigger — кнопка которую нажимает пользователь.

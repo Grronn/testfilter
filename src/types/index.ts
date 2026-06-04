@@ -1,6 +1,6 @@
 // ─── Domain types ─────────────────────────────────────────────────────────────
 
-export type Period = "все" | "последняя" | "сегодня" | "неделя" | "месяц";
+export type Period = "все" | "последняя" | "сегодня" | "неделя" | "месяц" | "даты";
 
 export interface Svodka {
   id:         string;
@@ -33,6 +33,14 @@ export interface SvodkiFiltersForm {
   licensies:      number[];   // ID выбранных участков
 }
 
+export interface SvodkiFiltersApiParams {
+  period:         Period;
+  startDate?:     string;
+  endDate?:       string;
+  groupCompanies: number[];
+  licensies:      number[];
+}
+
 export const DEFAULT_FORM_VALUES: SvodkiFiltersForm = {
   period:         "все",
   dateRange:      { from: undefined, to: undefined },
@@ -46,6 +54,7 @@ export const PERIOD_OPTIONS: Array<{ value: Period; label: string }> = [
   { value: "сегодня", label: "сегодня" },
   { value: "неделя", label: "неделя" },
   { value: "месяц", label: "месяц" },
+  { value: "даты", label: "даты" },
 ];
 
 // ─── Mock catalogs ────────────────────────────────────────────────────────────

@@ -26,7 +26,7 @@ import type { DateRange } from "react-day-picker";
 import * as Popover from "@radix-ui/react-popover";
 import { CalendarIcon } from "@radix-ui/react-icons";
 import { isBefore } from "date-fns";
-import { useController } from "react-hook-form";
+import { useController, useWatch } from "react-hook-form";
 import type { Control } from "react-hook-form";
 import { Calendar } from "./Calendar";
 import type { SvodkiFiltersForm } from "../../../types";
@@ -48,6 +48,8 @@ export function DateRangePicker({ control }: DateRangePickerProps) {
   // Поэтому держим локальный state "pendingRange" для календаря.
   // ──────────────────────────────────────────────────────────
   const { field } = useController({ name: "dateRange", control });
+  const period = useWatch({ control, name: "period" });
+  const isEnabled = period === "даты";
 
   const [open, setOpen] = useState(false);
 
@@ -79,6 +81,8 @@ export function DateRangePicker({ control }: DateRangePickerProps) {
   }, [isSingleDaySelected, pendingRange, hoveredDate]);
 
   const handleOpenChange = (next: boolean) => {
+    if (next && !isEnabled) return;
+
     if (next) {
       setPendingRange(field.value?.from ? (field.value as DateRange) : undefined);
     } else {
@@ -145,13 +149,18 @@ export function DateRangePicker({ control }: DateRangePickerProps) {
     // Controlled нужен чтобы закрывать попап программно после "применить".
     // Uncontrolled (без open/onOpenChange) сам управляет открытием.
     // ──────────────────────────────────────────────────────────
-    <Popover.Root open={open} onOpenChange={handleOpenChange}>
+    <Popover.Root open={isEnabled && open} onOpenChange={handleOpenChange}>
       <Popover.Trigger asChild>
         {/*
           asChild — Radix "сливает" свой поведение (click → open)
           с нашим button, не добавляя лишний DOM элемент.
         */}
-        <button type="button" className="filter-icon-btn" title="Выбрать период">
+        <button
+          type="button"
+          className="filter-icon-btn"
+          title="Выберите период даты"
+          disabled={!isEnabled}
+        >
           <CalendarIcon width={16} height={16} />
         </button>
       </Popover.Trigger>

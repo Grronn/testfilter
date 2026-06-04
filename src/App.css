@@ -160,9 +160,14 @@ body {
   flex-shrink: 0;
 }
 
-.filter-icon-btn:hover {
+.filter-icon-btn:hover:not(:disabled) {
   background: rgba(255,255,255,0.12);
   color: #fff;
+}
+
+.filter-icon-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.35;
 }
 
 .filter-icon-btn--settings {

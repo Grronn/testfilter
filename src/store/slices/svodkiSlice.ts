@@ -1,5 +1,11 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import type { Svodka, SvodkiFiltersForm, GroupCompany, License } from "../../types";
+import type {
+  Svodka,
+  SvodkiFiltersForm,
+  SvodkiFiltersApiParams,
+  GroupCompany,
+  License,
+} from "../../types";
 import { MOCK_SVODKI, MOCK_GROUP_COMPANIES, MOCK_LICENSES } from "../../types";
 
 // ─── State ───────────────────────────────────────────────────────────────────
@@ -27,8 +33,10 @@ export const fetchSvodki = createAsyncThunk(
   "svodki/fetch",
   async (filters: SvodkiFiltersForm, thunkAPI) => {
     const state = thunkAPI.getState() as { svodki: SvodkiState };
+    const apiParams = toApiParams(filters);
     // TODO: заменить на реальный API-вызов:
-    // return await api.get<Svodka[]>("/svodki", { params: toApiParams(filters) });
+    // return await api.get<Svodka[]>("/svodki", { params: apiParams });
+    void apiParams;
     return filterSvodki(
       MOCK_SVODKI,
       filters,
@@ -66,6 +74,19 @@ export const selectSvodkiLoading     = (s: RootState) => s.svodki.isLoading;
 export const selectGroupCompanies    = (s: RootState) => s.svodki.groupCompanies;
 export const selectLicensies         = (s: RootState) => s.svodki.licensies;
 
+export function toApiParams(filters: SvodkiFiltersForm): SvodkiFiltersApiParams {
+  const from = filters.period === "даты" ? filters.dateRange?.from : undefined;
+  const to = filters.dateRange?.to ?? from;
+
+  return {
+    period: filters.period,
+    startDate: from ? startOfDay(from).toISOString() : undefined,
+    endDate: to ? endOfDay(to).toISOString() : undefined,
+    groupCompanies: filters.groupCompanies,
+    licensies: filters.licensies,
+  };
+}
+
 // ─── Filtering ───────────────────────────────────────────────────────────────
 
 // Форма хранит ID выбранных обществ и участков.
@@ -90,12 +111,12 @@ function filterSvodki(
   );
 
   return svodki.filter((s) => {
-    if (filters.period !== "все") {
+    if (filters.period !== "все" && filters.period !== "даты") {
       const date = parseDDMMYYYY(s.dateFrom);
       if (!matchesPeriod(date, new Date(), filters.period)) return false;
     }
 
-    if (filters.dateRange?.from) {
+    if (filters.period === "даты" && filters.dateRange?.from) {
       const date = parseDDMMYYYY(s.dateFrom);
       const from = filters.dateRange.from;
       const to   = filters.dateRange.to ?? from;
@@ -135,5 +156,6 @@ function matchesPeriod(date: Date, today: Date, period: string): boolean {
   if (period === "неделя")    return diff <= 7;
   if (period === "месяц")     return diff <= 30;
   if (period === "последняя") return diff < 1;
+  if (period === "даты")      return true;
   return true;
 }
